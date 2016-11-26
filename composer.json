@@ -47,8 +47,7 @@
     ],
     "qa-all": [
       "@cs",
-      "@unit",
-      "@mutation"
+      "@unit"
     ],
     "qa-windows": [
       "@cs",

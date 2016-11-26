@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "a2638ea37549e956062850a0059869c8",
+    "hash": "9672a5a20ef248d34c4b635d9bbc4af4",
     "content-hash": "d73aabf42d3eeb6ef19763779f3fbee5",
     "packages": [
         {
@@ -197,12 +197,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-api-clients/test-utilities.git",
-                "reference": "1960dc6694e321511c17ede557d733dbbcd6cd81"
+                "reference": "99062f51b9bbc4a7e4980bb31c225c1277b2e491"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-api-clients/test-utilities/zipball/1960dc6694e321511c17ede557d733dbbcd6cd81",
-                "reference": "1960dc6694e321511c17ede557d733dbbcd6cd81",
+                "url": "https://api.github.com/repos/php-api-clients/test-utilities/zipball/99062f51b9bbc4a7e4980bb31c225c1277b2e491",
+                "reference": "99062f51b9bbc4a7e4980bb31c225c1277b2e491",
                 "shasum": ""
             },
             "require": {
@@ -230,7 +230,7 @@
                     "email": "ceesjank@gmail.com"
                 }
             ],
-            "time": "2016-11-24 22:07:17"
+            "time": "2016-11-26 22:01:56"
         },
         {
             "name": "clue/block-react",
