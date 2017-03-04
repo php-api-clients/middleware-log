@@ -1,8 +1,7 @@
 <?php declare(strict_types=1);
 
-namespace ApiClients\Foundation\Log\Middleware;
+namespace ApiClients\Middleware\Log;
 
-use ApiClients\Foundation\Log\Options;
 use ApiClients\Foundation\Middleware\MiddlewareInterface;
 use ApiClients\Foundation\Middleware\Priority;
 use Psr\Http\Message\RequestInterface;

@@ -18,12 +18,12 @@
   },
   "autoload": {
     "psr-4": {
-      "ApiClients\\Foundation\\Log\\": "src/"
+      "ApiClients\\Middleware\\Log\\": "src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "ApiClients\\Tests\\Foundation\\Log\\": "tests/"
+      "ApiClients\\Tests\\Middleware\\Log\\": "tests/"
     }
   },
   "config": {

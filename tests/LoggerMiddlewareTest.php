@@ -1,17 +1,17 @@
 <?php declare(strict_types=1);
 
-namespace ApiClients\Tests\Foundation\Cache\Middleware;
+namespace ApiClients\Tests\Middleware\Log;
 
-use ApiClients\Foundation\Log\Middleware\LoggerMiddleware;
-use ApiClients\Foundation\Log\Options;
 use ApiClients\Foundation\Middleware\Priority;
+use ApiClients\Middleware\Log\LoggerMiddleware;
+use ApiClients\Middleware\Log\Options;
 use ApiClients\Tools\TestUtilities\TestCase;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use Prophecy\Argument;
-use function Clue\React\Block\await;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
+use function Clue\React\Block\await;
 use function React\Promise\resolve;
 
 class LoggerMiddlewareTest extends TestCase
