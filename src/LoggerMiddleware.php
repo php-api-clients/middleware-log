@@ -103,7 +103,6 @@ class LoggerMiddleware implements MiddlewareInterface
 
         $this->logger->log($options[self::class][Options::LEVEL], $message, $this->context);
 
-
         return resolve($response);
     }
 
