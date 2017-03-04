@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "b386b4ebd9f2ea90aaef3fe8d57811d1",
+    "content-hash": "6cf4f903d7272e5813c0dc9aae9832db",
     "packages": [
         {
             "name": "api-clients/middleware",
@@ -200,7 +200,7 @@
     "packages-dev": [
         {
             "name": "api-clients/test-utilities",
-            "version": "dev-master",
+            "version": "3.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-api-clients/test-utilities.git",
@@ -1976,11 +1976,9 @@
         }
     ],
     "aliases": [],
-    "minimum-stability": "dev",
-    "stability-flags": {
-        "api-clients/test-utilities": 20
-    },
-    "prefer-stable": true,
+    "minimum-stability": "stable",
+    "stability-flags": [],
+    "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
         "php": "^7.0"

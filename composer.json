@@ -1,8 +1,6 @@
 {
   "name": "api-clients/middleware-log",
   "license": "MIT",
-  "minimum-stability": "dev",
-  "prefer-stable": true,
   "authors": [
     {
       "name": "Cees-Jan Kiewiet",
@@ -15,7 +13,7 @@
     "psr/log": "^1.0"
   },
   "require-dev": {
-    "api-clients/test-utilities": "dev-master",
+    "api-clients/test-utilities": "^3.0.1",
     "guzzlehttp/psr7": "^1.3"
   },
   "autoload": {
