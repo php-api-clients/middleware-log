@@ -1,4 +1,4 @@
-# API Client Logger middleware for PHP 7.x
+# API Client Logger (PSR-3) middleware for PHP 7.x
 
 [![Build Status](https://travis-ci.org/php-api-clients/middleware-log.svg?branch=master)](https://travis-ci.org/php-api-clients/middleware-log)
 [![Latest Stable Version](https://poser.pugx.org/api-clients/middleware-log/v/stable.png)](https://packagist.org/packages/api-clients/middleware-log)
