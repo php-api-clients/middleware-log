@@ -8,12 +8,15 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
 use React\Promise\CancellablePromiseInterface;
+use Throwable;
+use function React\Promise\reject;
 use function React\Promise\resolve;
 
 class LoggerMiddleware implements MiddlewareInterface
 {
-    const REQUEST = 'request';
+    const REQUEST  = 'request';
     const RESPONSE = 'response';
+    const ERROR    = 'error';
 
     /**
      * @var LoggerInterface
@@ -95,15 +98,42 @@ class LoggerMiddleware implements MiddlewareInterface
 
         $message = 'Request ' . $this->requestId . ' completed.';
 
-        $this->context[self::RESPONSE]['status_code'] = $response->getStatusCode();
-        $this->context[self::RESPONSE]['status_reason'] = $response->getReasonPhrase();
-        $this->context[self::RESPONSE]['protocol_version'] = $response->getProtocolVersion();
-        $ignoreHeaders = $options[self::class][Options::IGNORE_HEADERS] ?? [];
-        $this->iterateHeaders(self::RESPONSE, $response->getHeaders(), $ignoreHeaders);
+        $this->addResponseToContext($response, $options);
 
         $this->logger->log($options[self::class][Options::LEVEL], $message, $this->context);
 
         return resolve($response);
+    }
+
+    /**
+     * @param Throwable $throwable
+     * @param array $options
+     * @return CancellablePromiseInterface
+     */
+    public function error(Throwable $throwable, array $options = []): CancellablePromiseInterface
+    {
+        if (!isset($options[self::class][Options::ERROR_LEVEL])) {
+            return reject($throwable);
+        }
+
+        $message = $throwable->getMessage();
+
+        $response = null;
+        if (method_exists($throwable, 'getResponse')) {
+            $response = $throwable->getResponse();
+        }
+        if ($response instanceof ResponseInterface) {
+            $this->addResponseToContext($response, $options);
+        }
+
+        $this->context[self::ERROR]['code']  = $throwable->getCode();
+        $this->context[self::ERROR]['file']  = $throwable->getFile();
+        $this->context[self::ERROR]['line']  = $throwable->getLine();
+        $this->context[self::ERROR]['trace'] = $throwable->getTraceAsString();
+
+        $this->logger->log($options[self::class][Options::ERROR_LEVEL], $message, $this->context);
+
+        return reject($throwable);
     }
 
     /**
@@ -120,5 +150,14 @@ class LoggerMiddleware implements MiddlewareInterface
 
             $this->context[$prefix]['headers'][$header] = $value;
         }
+    }
+
+    private function addResponseToContext(ResponseInterface $response, array $options)
+    {
+        $this->context[self::RESPONSE]['status_code']      = $response->getStatusCode();
+        $this->context[self::RESPONSE]['status_reason']    = $response->getReasonPhrase();
+        $this->context[self::RESPONSE]['protocol_version'] = $response->getProtocolVersion();
+        $ignoreHeaders = $options[self::class][Options::IGNORE_HEADERS] ?? [];
+        $this->iterateHeaders(self::RESPONSE, $response->getHeaders(), $ignoreHeaders);
     }
 }
