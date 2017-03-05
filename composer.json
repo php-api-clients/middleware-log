@@ -39,10 +39,6 @@
       "@ensure-installed",
       "phpunit --colors=always -c phpunit.xml.dist --coverage-text --coverage-html covHtml"
     ],
-    "mutation": [
-      "@ensure-installed",
-      "if [ `php -m | grep xdebug | wc -l` -gt 0 ]; then humbug --ansi --incremental; fi"
-    ],
     "qa-all": [
       "@cs",
       "@unit"
