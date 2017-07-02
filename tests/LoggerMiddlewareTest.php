@@ -2,7 +2,6 @@
 
 namespace ApiClients\Tests\Middleware\Log;
 
-use ApiClients\Foundation\Middleware\Priority;
 use ApiClients\Middleware\Log\LoggerMiddleware;
 use ApiClients\Middleware\Log\Options;
 use ApiClients\Tools\TestUtilities\TestCase;
@@ -12,18 +11,9 @@ use GuzzleHttp\Psr7\Response;
 use Prophecy\Argument;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
-use function Clue\React\Block\await;
-use function React\Promise\resolve;
 
 class LoggerMiddlewareTest extends TestCase
 {
-    public function testPriority()
-    {
-        $logger = $this->prophesize(LoggerInterface::class)->reveal();
-        $middleware = new LoggerMiddleware($logger);
-        $this->assertSame(Priority::LAST, $middleware->priority());
-    }
-
     public function testNoConfig()
     {
         $options = [];
@@ -49,9 +39,9 @@ class LoggerMiddlewareTest extends TestCase
         $logger = $this->prophesize(LoggerInterface::class);
         $logger->log(Argument::any(), Argument::any(), Argument::any())->shouldNotBeCalled();
         $middleware = new LoggerMiddleware($logger->reveal());
-        $middleware->pre($request, $options);
-        $middleware->post($response, $options);
-        $middleware->error($exception, $options);
+        $middleware->pre($request, 'abc', $options);
+        $middleware->post($response, 'abc', $options);
+        $middleware->error($exception, 'abc', $options);
     }
 
 
@@ -89,7 +79,7 @@ class LoggerMiddlewareTest extends TestCase
         $logger = $this->prophesize(LoggerInterface::class);
         $logger->log(
             LogLevel::DEBUG,
-            'Request ' . spl_object_hash($request) . ' completed.',
+            'Request abc completed.',
             [
                 'request' => [
                     'method' => 'GET',
@@ -110,40 +100,10 @@ class LoggerMiddlewareTest extends TestCase
                 ],
             ]
         )->shouldBeCalled();
-        $logger->log(
-            LogLevel::ERROR,
-            $exception->getMessage(),
-            [
-                'request' => [
-                    'method'           => 'GET',
-                    'uri'              => 'https://example.com/',
-                    'protocol_version' => '1.1',
-                    'headers' => [
-                        'Host'  => ['example.com'],
-                        'X-Foo' => ['bar'],
-                    ],
-                ],
-                'response' => [
-                    'status_code'      => 200,
-                    'status_reason'    => 'OK',
-                    'protocol_version' => '1.1',
-                    'headers' => [
-                        'X-Bar' => ['foo'],
-                    ],
-                ],
-                'error' => [
-                    'code'  => $exception->getCode(),
-                    'file'  => $exception->getFile(),
-                    'line'  => $exception->getLine(),
-                    'trace' => $exception->getTraceAsString(),
-                ],
-            ]
-        )->shouldBeCalled();
 
         $middleware = new LoggerMiddleware($logger->reveal());
-        $middleware->pre($request, $options);
-        $middleware->post($response, $options);
-        $middleware->error($exception, $options);
+        $middleware->pre($request, 'abc', $options);
+        $middleware->post($response, 'abc', $options);
     }
 
     public function testLogError()
@@ -213,8 +173,8 @@ class LoggerMiddlewareTest extends TestCase
         )->shouldBeCalled();
 
         $middleware = new LoggerMiddleware($logger->reveal());
-        $middleware->pre($request, $options);
-        $middleware->error($exception, $options);
+        $middleware->pre($request, 'abc', $options);
+        $middleware->error($exception, 'abc', $options);
     }
 
     public function testLogErrorNoResponse()
@@ -253,12 +213,6 @@ class LoggerMiddlewareTest extends TestCase
                         'X-Foo' => ['bar'],
                     ],
                 ],
-                'response' => [
-                    'status_code' => null,
-                    'status_reason' => null,
-                    'protocol_version' => null,
-                    'headers' => [],
-                ],
                 'error' => [
                     'code'  => $exception->getCode(),
                     'file'  => $exception->getFile(),
@@ -269,7 +223,7 @@ class LoggerMiddlewareTest extends TestCase
         )->shouldBeCalled();
 
         $middleware = new LoggerMiddleware($logger->reveal());
-        $middleware->pre($request, $options);
-        $middleware->error($exception, $options);
+        $middleware->pre($request, 'abc', $options);
+        $middleware->error($exception, 'abc', $options);
     }
 }
