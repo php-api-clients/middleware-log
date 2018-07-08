@@ -134,6 +134,10 @@ class LoggerMiddleware implements MiddlewareInterface
         $this->context[$transactionId][self::ERROR]['line']  = $throwable->getLine();
         $this->context[$transactionId][self::ERROR]['trace'] = $throwable->getTraceAsString();
 
+        if (method_exists($throwable, 'getContext')) {
+            $this->context[$transactionId][self::ERROR]['context'] = $throwable->getContext();
+        }
+
         $this->logger->log($options[self::class][Options::ERROR_LEVEL], $message, $this->context[$transactionId]);
         unset($this->context[$transactionId]);
 
