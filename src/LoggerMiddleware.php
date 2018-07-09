@@ -23,25 +23,14 @@ class LoggerMiddleware implements MiddlewareInterface
      */
     private $logger;
 
-    /**
-     * @var array
-     */
     private $context = [];
 
-    /**
-     * LogMiddleware constructor.
-     * @param LoggerInterface $logger
-     */
     public function __construct(LoggerInterface $logger)
     {
         $this->logger = $logger;
     }
 
     /**
-     * @param RequestInterface $request
-     * @param array $options
-     * @return CancellablePromiseInterface
-     *
      * @Last()
      */
     public function pre(
@@ -68,10 +57,6 @@ class LoggerMiddleware implements MiddlewareInterface
     }
 
     /**
-     * @param ResponseInterface $response
-     * @param array $options
-     * @return CancellablePromiseInterface
-     *
      * @Last()
      */
     public function post(
@@ -102,10 +87,6 @@ class LoggerMiddleware implements MiddlewareInterface
     }
 
     /**
-     * @param Throwable $throwable
-     * @param array $options
-     * @return CancellablePromiseInterface
-     *
      * @Last()
      */
     public function error(
@@ -148,11 +129,6 @@ class LoggerMiddleware implements MiddlewareInterface
         return reject($throwable);
     }
 
-    /**
-     * @param string $prefix
-     * @param array $headers
-     * @param array $ignoreHeaders
-     */
     protected function iterateHeaders(
         array $context,
         string $prefix,
