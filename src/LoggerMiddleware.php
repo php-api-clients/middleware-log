@@ -26,20 +26,7 @@ class LoggerMiddleware implements MiddlewareInterface
     /**
      * @var array
      */
-    private $context = [
-        self::REQUEST => [
-            'method' => null,
-            'uri' => null,
-            'protocol_version' => null,
-            'headers' => [],
-        ],
-        self::RESPONSE => [
-            'status_code' => null,
-            'status_reason' => null,
-            'protocol_version' => null,
-            'headers' => [],
-        ],
-    ];
+    private $context = [];
 
     /**
      * LogMiddleware constructor.
@@ -62,7 +49,7 @@ class LoggerMiddleware implements MiddlewareInterface
         string $transactionId,
         array $options = []
     ): CancellablePromiseInterface {
-        if (!isset($options[self::class][Options::LEVEL])) {
+        if (!isset($options[self::class][Options::LEVEL]) && !isset($options[self::class][Options::ERROR_LEVEL])) {
             return resolve($request);
         }
 
@@ -70,7 +57,12 @@ class LoggerMiddleware implements MiddlewareInterface
         $this->context[$transactionId][self::REQUEST]['uri'] = (string)$request->getUri();
         $this->context[$transactionId][self::REQUEST]['protocol_version'] = (string)$request->getProtocolVersion();
         $ignoreHeaders = $options[self::class][Options::IGNORE_HEADERS] ?? [];
-        $this->iterateHeaders(self::REQUEST, $transactionId, $request->getHeaders(), $ignoreHeaders);
+        $this->context[$transactionId] = $this->iterateHeaders(
+            $this->context[$transactionId],
+            self::REQUEST,
+            $request->getHeaders(),
+            $ignoreHeaders
+        );
 
         return resolve($request);
     }
@@ -87,17 +79,24 @@ class LoggerMiddleware implements MiddlewareInterface
         string $transactionId,
         array $options = []
     ): CancellablePromiseInterface {
-        if (!isset($options[self::class][Options::LEVEL])) {
+        if (!isset($this->context[$transactionId])) {
+            return resolve($response);
+        }
+
+        $context = $this->context[$transactionId];
+        if (!isset($options[self::class][Options::LEVEL]) && !isset($options[self::class][Options::ERROR_LEVEL])) {
             unset($this->context[$transactionId]);
+        }
+
+        if (!isset($options[self::class][Options::LEVEL])) {
             return resolve($response);
         }
 
         $message = 'Request ' . $transactionId . ' completed.';
 
-        $this->addResponseToContext($response, $transactionId, $options);
+        $context = $this->addResponseToContext($context, $response, $options);
 
-        $this->logger->log($options[self::class][Options::LEVEL], $message, $this->context[$transactionId]);
-        unset($this->context[$transactionId]);
+        $this->logger->log($options[self::class][Options::LEVEL], $message, $context);
 
         return resolve($response);
     }
@@ -114,8 +113,14 @@ class LoggerMiddleware implements MiddlewareInterface
         string $transactionId,
         array $options = []
     ): CancellablePromiseInterface {
+        if (!isset($this->context[$transactionId])) {
+            return reject($throwable);
+        }
+
+        $context = $this->context[$transactionId];
+        unset($this->context[$transactionId]);
+
         if (!isset($options[self::class][Options::ERROR_LEVEL])) {
-            unset($this->context[$transactionId]);
             return reject($throwable);
         }
 
@@ -126,20 +131,19 @@ class LoggerMiddleware implements MiddlewareInterface
             $response = $throwable->getResponse();
         }
         if ($response instanceof ResponseInterface) {
-            $this->addResponseToContext($response, $transactionId, $options);
+            $context = $this->addResponseToContext($context, $response, $options);
         }
 
-        $this->context[$transactionId][self::ERROR]['code']  = $throwable->getCode();
-        $this->context[$transactionId][self::ERROR]['file']  = $throwable->getFile();
-        $this->context[$transactionId][self::ERROR]['line']  = $throwable->getLine();
-        $this->context[$transactionId][self::ERROR]['trace'] = $throwable->getTraceAsString();
+        $context[self::ERROR]['code']  = $throwable->getCode();
+        $context[self::ERROR]['file']  = $throwable->getFile();
+        $context[self::ERROR]['line']  = $throwable->getLine();
+        $context[self::ERROR]['trace'] = $throwable->getTraceAsString();
 
         if (method_exists($throwable, 'getContext')) {
-            $this->context[$transactionId][self::ERROR]['context'] = $throwable->getContext();
+            $context[self::ERROR]['context'] = $throwable->getContext();
         }
 
-        $this->logger->log($options[self::class][Options::ERROR_LEVEL], $message, $this->context[$transactionId]);
-        unset($this->context[$transactionId]);
+        $this->logger->log($options[self::class][Options::ERROR_LEVEL], $message, $context);
 
         return reject($throwable);
     }
@@ -149,23 +153,39 @@ class LoggerMiddleware implements MiddlewareInterface
      * @param array $headers
      * @param array $ignoreHeaders
      */
-    protected function iterateHeaders(string $prefix, string $transactionId, array $headers, array $ignoreHeaders)
-    {
+    protected function iterateHeaders(
+        array $context,
+        string $prefix,
+        array $headers,
+        array $ignoreHeaders
+    ): array {
         foreach ($headers as $header => $value) {
             if (in_array($header, $ignoreHeaders)) {
                 continue;
             }
 
-            $this->context[$transactionId][$prefix]['headers'][$header] = $value;
+            $context[$prefix]['headers'][$header] = $value;
         }
+
+        return $context;
     }
 
-    private function addResponseToContext(ResponseInterface $response, string $transactionId, array $options)
-    {
-        $this->context[$transactionId][self::RESPONSE]['status_code']      = $response->getStatusCode();
-        $this->context[$transactionId][self::RESPONSE]['status_reason']    = $response->getReasonPhrase();
-        $this->context[$transactionId][self::RESPONSE]['protocol_version'] = $response->getProtocolVersion();
+    private function addResponseToContext(
+        array $context,
+        ResponseInterface $response,
+        array $options
+    ): array {
+        $context[self::RESPONSE]['status_code']      = $response->getStatusCode();
+        $context[self::RESPONSE]['status_reason']    = $response->getReasonPhrase();
+        $context[self::RESPONSE]['protocol_version'] = $response->getProtocolVersion();
         $ignoreHeaders = $options[self::class][Options::IGNORE_HEADERS] ?? [];
-        $this->iterateHeaders(self::RESPONSE, $transactionId, $response->getHeaders(), $ignoreHeaders);
+        $context  = $this->iterateHeaders(
+            $context,
+            self::RESPONSE,
+            $response->getHeaders(),
+            $ignoreHeaders
+        );
+
+        return $context;
     }
 }
