@@ -44,7 +44,6 @@ class LoggerMiddlewareTest extends TestCase
         $middleware->error($exception, 'abc', $options);
     }
 
-
     public function testLog()
     {
         $options = [
@@ -126,9 +125,7 @@ class LoggerMiddlewareTest extends TestCase
                 'X-Ignore-Request' => 'nope',
             ]
         );
-        $exception = new class(
-            'New Exception'
-        ) extends Exception {
+        $exception = new class('New Exception') extends Exception {
             public function getResponse()
             {
                 return new Response(
