@@ -1,6 +1,6 @@
 {
   "name": "api-clients/middleware-log",
-  "description2": "Request/Response logging middleware",
+  "description": "Request/Response logging middleware",
   "license": "MIT",
   "authors": [
     {
