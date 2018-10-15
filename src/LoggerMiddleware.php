@@ -136,7 +136,7 @@ class LoggerMiddleware implements MiddlewareInterface
         array $ignoreHeaders
     ): array {
         foreach ($headers as $header => $value) {
-            if (in_array($header, $ignoreHeaders)) {
+            if (in_array($header, $ignoreHeaders, true)) {
                 continue;
             }
 
