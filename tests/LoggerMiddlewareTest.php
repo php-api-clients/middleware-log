@@ -50,6 +50,7 @@ class LoggerMiddlewareTest extends TestCase
             LoggerMiddleware::class => [
                 Options::LEVEL          => LogLevel::DEBUG,
                 Options::ERROR_LEVEL    => LogLevel::ERROR,
+                Options::URL_LEVEL      => LogLevel::DEBUG,
                 Options::IGNORE_HEADERS => [
                     'X-Ignore-Request',
                     'X-Ignore-Response',
@@ -76,6 +77,21 @@ class LoggerMiddlewareTest extends TestCase
         );
 
         $logger = $this->prophesize(LoggerInterface::class);
+        $logger->log(
+            LogLevel::DEBUG,
+            'Requesting: https://example.com/',
+            [
+                'request' => [
+                    'method' => 'GET',
+                    'uri' => 'https://example.com/',
+                    'protocol_version' => '1.1',
+                    'headers' => [
+                        'Host' => ['example.com'],
+                        'X-Foo' => ['bar'],
+                    ],
+                ],
+            ]
+        )->shouldBeCalled();
         $logger->log(
             LogLevel::DEBUG,
             'Request abc completed.',

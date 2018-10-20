@@ -7,4 +7,5 @@ final class Options
     const IGNORE_HEADERS = 'ignore_headers';
     const LEVEL          = 'level';
     const ERROR_LEVEL    = 'error_level';
+    const URL_LEVEL      = 'url_level';
 }

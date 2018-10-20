@@ -53,6 +53,13 @@ class LoggerMiddleware implements MiddlewareInterface
             $ignoreHeaders
         );
 
+        if (!isset($options[self::class][Options::URL_LEVEL])) {
+            return resolve($request);
+        }
+
+        $message = 'Requesting: ' . $this->context[$transactionId][self::REQUEST]['uri'];
+        $this->logger->log($options[self::class][Options::URL_LEVEL], $message, $this->context[$transactionId]);
+
         return resolve($request);
     }
 
