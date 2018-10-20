@@ -14,9 +14,9 @@ use function React\Promise\resolve;
 
 class LoggerMiddleware implements MiddlewareInterface
 {
-    const REQUEST  = 'request';
-    const RESPONSE = 'response';
-    const ERROR    = 'error';
+    private const REQUEST  = 'request';
+    private const RESPONSE = 'response';
+    private const ERROR    = 'error';
 
     /**
      * @var LoggerInterface
