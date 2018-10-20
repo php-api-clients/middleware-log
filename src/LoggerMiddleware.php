@@ -6,6 +6,7 @@ use ApiClients\Foundation\Middleware\Annotation\Last;
 use ApiClients\Foundation\Middleware\MiddlewareInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerInterface;
 use React\Promise\CancellablePromiseInterface;
 use Throwable;
@@ -14,9 +15,9 @@ use function React\Promise\resolve;
 
 class LoggerMiddleware implements MiddlewareInterface
 {
-    const REQUEST  = 'request';
-    const RESPONSE = 'response';
-    const ERROR    = 'error';
+    private const REQUEST  = 'request';
+    private const RESPONSE = 'response';
+    private const ERROR    = 'error';
 
     /**
      * @var LoggerInterface
@@ -43,7 +44,10 @@ class LoggerMiddleware implements MiddlewareInterface
         }
 
         $this->context[$transactionId][self::REQUEST]['method'] = $request->getMethod();
-        $this->context[$transactionId][self::REQUEST]['uri'] = (string)$request->getUri();
+        $this->context[$transactionId][self::REQUEST]['uri'] = (string)$this->stripQueryItems(
+            $request->getUri(),
+            $options
+        );
         $this->context[$transactionId][self::REQUEST]['protocol_version'] = (string)$request->getProtocolVersion();
         $ignoreHeaders = $options[self::class][Options::IGNORE_HEADERS] ?? [];
         $this->context[$transactionId] = $this->iterateHeaders(
@@ -52,6 +56,13 @@ class LoggerMiddleware implements MiddlewareInterface
             $request->getHeaders(),
             $ignoreHeaders
         );
+
+        if (!isset($options[self::class][Options::URL_LEVEL])) {
+            return resolve($request);
+        }
+
+        $message = 'Requesting: ' . $this->context[$transactionId][self::REQUEST]['uri'];
+        $this->logger->log($options[self::class][Options::URL_LEVEL], $message, $this->context[$transactionId]);
 
         return resolve($request);
     }
@@ -163,5 +174,15 @@ class LoggerMiddleware implements MiddlewareInterface
         );
 
         return $context;
+    }
+
+    private function stripQueryItems(UriInterface $uri, array $options): UriInterface
+    {
+        parse_str($uri->getQuery(), $query);
+        foreach ($options[self::class][Options::IGNORE_URI_QUERY_ITEMS] ?? [] as $item) {
+            unset($query[$item], $query[$item . '[]']);
+        }
+
+        return $uri->withQuery(http_build_query($query));
     }
 }

@@ -50,15 +50,19 @@ class LoggerMiddlewareTest extends TestCase
             LoggerMiddleware::class => [
                 Options::LEVEL          => LogLevel::DEBUG,
                 Options::ERROR_LEVEL    => LogLevel::ERROR,
+                Options::URL_LEVEL      => LogLevel::DEBUG,
                 Options::IGNORE_HEADERS => [
                     'X-Ignore-Request',
                     'X-Ignore-Response',
+                ],
+                Options::IGNORE_URI_QUERY_ITEMS => [
+                    'strip_this_item',
                 ],
             ],
         ];
         $request = new Request(
             'GET',
-            'https://example.com/',
+            'https://example.com/?strip_this_item=0&dont_strip_this_item=1',
             [
                 'X-Foo' => 'bar',
                 'X-Ignore-Request' => 'nope',
@@ -78,11 +82,26 @@ class LoggerMiddlewareTest extends TestCase
         $logger = $this->prophesize(LoggerInterface::class);
         $logger->log(
             LogLevel::DEBUG,
+            'Requesting: https://example.com/?dont_strip_this_item=1',
+            [
+                'request' => [
+                    'method' => 'GET',
+                    'uri' => 'https://example.com/?dont_strip_this_item=1',
+                    'protocol_version' => '1.1',
+                    'headers' => [
+                        'Host' => ['example.com'],
+                        'X-Foo' => ['bar'],
+                    ],
+                ],
+            ]
+        )->shouldBeCalled();
+        $logger->log(
+            LogLevel::DEBUG,
             'Request abc completed.',
             [
                 'request' => [
                     'method' => 'GET',
-                    'uri' => 'https://example.com/',
+                    'uri' => 'https://example.com/?dont_strip_this_item=1',
                     'protocol_version' => '1.1',
                     'headers' => [
                         'Host' => ['example.com'],
