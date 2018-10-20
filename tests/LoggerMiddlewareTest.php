@@ -55,11 +55,14 @@ class LoggerMiddlewareTest extends TestCase
                     'X-Ignore-Request',
                     'X-Ignore-Response',
                 ],
+                Options::IGNORE_URI_QUERY_ITEMS => [
+                    'strip_this_item',
+                ],
             ],
         ];
         $request = new Request(
             'GET',
-            'https://example.com/',
+            'https://example.com/?strip_this_item=0&dont_strip_this_item=1',
             [
                 'X-Foo' => 'bar',
                 'X-Ignore-Request' => 'nope',
@@ -79,11 +82,11 @@ class LoggerMiddlewareTest extends TestCase
         $logger = $this->prophesize(LoggerInterface::class);
         $logger->log(
             LogLevel::DEBUG,
-            'Requesting: https://example.com/',
+            'Requesting: https://example.com/?dont_strip_this_item=1',
             [
                 'request' => [
                     'method' => 'GET',
-                    'uri' => 'https://example.com/',
+                    'uri' => 'https://example.com/?dont_strip_this_item=1',
                     'protocol_version' => '1.1',
                     'headers' => [
                         'Host' => ['example.com'],
@@ -98,7 +101,7 @@ class LoggerMiddlewareTest extends TestCase
             [
                 'request' => [
                     'method' => 'GET',
-                    'uri' => 'https://example.com/',
+                    'uri' => 'https://example.com/?dont_strip_this_item=1',
                     'protocol_version' => '1.1',
                     'headers' => [
                         'Host' => ['example.com'],
