@@ -44,7 +44,10 @@ class LoggerMiddleware implements MiddlewareInterface
         }
 
         $this->context[$transactionId][self::REQUEST]['method'] = $request->getMethod();
-        $this->context[$transactionId][self::REQUEST]['uri'] = (string)$this->stripQueryItems($request->getUri(), $options);
+        $this->context[$transactionId][self::REQUEST]['uri'] = (string)$this->stripQueryItems(
+            $request->getUri(),
+            $options
+        );
         $this->context[$transactionId][self::REQUEST]['protocol_version'] = (string)$request->getProtocolVersion();
         $ignoreHeaders = $options[self::class][Options::IGNORE_HEADERS] ?? [];
         $this->context[$transactionId] = $this->iterateHeaders(
