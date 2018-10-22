@@ -12,12 +12,17 @@ use React\Promise\CancellablePromiseInterface;
 use Throwable;
 use function React\Promise\reject;
 use function React\Promise\resolve;
+use function WyriHaximus\getIn;
 
 class LoggerMiddleware implements MiddlewareInterface
 {
-    private const REQUEST  = 'request';
-    private const RESPONSE = 'response';
-    private const ERROR    = 'error';
+    private const REQUEST            = 'request';
+    private const RESPONSE           = 'response';
+    private const ERROR              = 'error';
+
+    private const MESSAGE_URL        = '[{{transaction_id}}] Requesting: {{request.uri}}';
+    private const MESSAGE_SUCCESSFUL = '[{{transaction_id}}] Request completed with {{response.status_code}}';
+    private const MESSAGE_ERROR      = '[{{transaction_id}}] {{error.message}}';
 
     /**
      * @var LoggerInterface
@@ -43,6 +48,10 @@ class LoggerMiddleware implements MiddlewareInterface
             return resolve($request);
         }
 
+        $this->context[$transactionId] = [
+            'transaction_id' => $transactionId,
+            self::REQUEST => [],
+        ];
         $this->context[$transactionId][self::REQUEST]['method'] = $request->getMethod();
         $this->context[$transactionId][self::REQUEST]['uri'] = (string)$this->stripQueryItems(
             $request->getUri(),
@@ -61,7 +70,7 @@ class LoggerMiddleware implements MiddlewareInterface
             return resolve($request);
         }
 
-        $message = 'Requesting: ' . $this->context[$transactionId][self::REQUEST]['uri'];
+        $message = $this->renderTemplate(self::MESSAGE_URL, $this->context[$transactionId]);
         $this->logger->log($options[self::class][Options::URL_LEVEL], $message, $this->context[$transactionId]);
 
         return resolve($request);
@@ -88,10 +97,8 @@ class LoggerMiddleware implements MiddlewareInterface
             return resolve($response);
         }
 
-        $message = 'Request ' . $transactionId . ' completed.';
-
         $context = $this->addResponseToContext($context, $response, $options);
-
+        $message = $this->renderTemplate(self::MESSAGE_SUCCESSFUL, $context);
         $this->logger->log($options[self::class][Options::LEVEL], $message, $context);
 
         return resolve($response);
@@ -116,8 +123,6 @@ class LoggerMiddleware implements MiddlewareInterface
             return reject($throwable);
         }
 
-        $message = $throwable->getMessage();
-
         $response = null;
         if (method_exists($throwable, 'getResponse')) {
             $response = $throwable->getResponse();
@@ -126,6 +131,7 @@ class LoggerMiddleware implements MiddlewareInterface
             $context = $this->addResponseToContext($context, $response, $options);
         }
 
+        $context[self::ERROR]['message']  = $throwable->getMessage();
         $context[self::ERROR]['code']  = $throwable->getCode();
         $context[self::ERROR]['file']  = $throwable->getFile();
         $context[self::ERROR]['line']  = $throwable->getLine();
@@ -135,6 +141,7 @@ class LoggerMiddleware implements MiddlewareInterface
             $context[self::ERROR]['context'] = $throwable->getContext();
         }
 
+        $message = $this->renderTemplate(self::MESSAGE_ERROR, $context);
         $this->logger->log($options[self::class][Options::ERROR_LEVEL], $message, $context);
 
         return reject($throwable);
@@ -184,5 +191,17 @@ class LoggerMiddleware implements MiddlewareInterface
         }
 
         return $uri->withQuery(http_build_query($query));
+    }
+
+    private function renderTemplate(string $template, array $context): string
+    {
+        $keyValues = [];
+        preg_match_all("|\{\{(.*)\}\}|U", $template, $out, PREG_PATTERN_ORDER);
+        foreach (array_unique(array_values($out[1])) as $placeHolder) {
+            $keyValues['{{' . $placeHolder . '}}'] = getIn($context, $placeHolder, '');
+        }
+        $template = str_replace(array_keys($keyValues), array_values($keyValues), $template);
+
+        return $template;
     }
 }

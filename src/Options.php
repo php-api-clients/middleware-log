@@ -9,4 +9,7 @@ final class Options
     public const LEVEL                  = 'level';
     public const ERROR_LEVEL            = 'error_level';
     public const URL_LEVEL              = 'url_level';
+    public const MESSAGE_PRE            = 'message_pre';
+    public const MESSAGE_POST           = 'message_post';
+    public const MESSAGE_ERROR          = 'message_error';
 }

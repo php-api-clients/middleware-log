@@ -75,15 +75,13 @@ class LoggerMiddlewareTest extends TestCase
                 'X-Ignore-Response' => 'nope',
             ]
         );
-        $exception = new Exception(
-            'New Exception'
-        );
 
         $logger = $this->prophesize(LoggerInterface::class);
         $logger->log(
             LogLevel::DEBUG,
-            'Requesting: https://example.com/?dont_strip_this_item=1',
+            '[abc] Requesting: https://example.com/?dont_strip_this_item=1',
             [
+                'transaction_id' => 'abc',
                 'request' => [
                     'method' => 'GET',
                     'uri' => 'https://example.com/?dont_strip_this_item=1',
@@ -97,8 +95,9 @@ class LoggerMiddlewareTest extends TestCase
         )->shouldBeCalled();
         $logger->log(
             LogLevel::DEBUG,
-            'Request abc completed.',
+            '[abc] Request completed with 200',
             [
+                'transaction_id' => 'abc',
                 'request' => [
                     'method' => 'GET',
                     'uri' => 'https://example.com/?dont_strip_this_item=1',
@@ -160,8 +159,9 @@ class LoggerMiddlewareTest extends TestCase
         $logger = $this->prophesize(LoggerInterface::class);
         $logger->log(
             LogLevel::ERROR,
-            $exception->getMessage(),
+            '[abc] ' . $exception->getMessage(),
             [
+                'transaction_id' => 'abc',
                 'request' => [
                     'method'           => 'GET',
                     'uri'              => 'https://example.com/',
@@ -180,10 +180,11 @@ class LoggerMiddlewareTest extends TestCase
                     ],
                 ],
                 'error' => [
-                    'code'  => $exception->getCode(),
-                    'file'  => $exception->getFile(),
-                    'line'  => $exception->getLine(),
-                    'trace' => $exception->getTraceAsString(),
+                    'message' => $exception->getMessage(),
+                    'code'    => $exception->getCode(),
+                    'file'    => $exception->getFile(),
+                    'line'    => $exception->getLine(),
+                    'trace'   => $exception->getTraceAsString(),
                 ],
             ]
         )->shouldBeCalled();
@@ -218,8 +219,9 @@ class LoggerMiddlewareTest extends TestCase
         $logger = $this->prophesize(LoggerInterface::class);
         $logger->log(
             LogLevel::ERROR,
-            $exception->getMessage(),
+            '[abc] ' . $exception->getMessage(),
             [
+                'transaction_id' => 'abc',
                 'request' => [
                     'method'           => 'GET',
                     'uri'              => 'https://example.com/',
@@ -230,10 +232,11 @@ class LoggerMiddlewareTest extends TestCase
                     ],
                 ],
                 'error' => [
-                    'code'  => $exception->getCode(),
-                    'file'  => $exception->getFile(),
-                    'line'  => $exception->getLine(),
-                    'trace' => $exception->getTraceAsString(),
+                    'message' => $exception->getMessage(),
+                    'code'    => $exception->getCode(),
+                    'file'    => $exception->getFile(),
+                    'line'    => $exception->getLine(),
+                    'trace'   => $exception->getTraceAsString(),
                 ],
             ]
         )->shouldBeCalled();
