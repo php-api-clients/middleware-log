@@ -11,7 +11,8 @@
   "require": {
     "php": "^7.2",
     "api-clients/middleware": "^4.0",
-    "psr/log": "^1.0"
+    "psr/log": "^1.0",
+    "wyrihaximus/string-get-in": "^1.0"
   },
   "require-dev": {
     "api-clients/test-utilities": "^5.1.0",
