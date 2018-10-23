@@ -123,6 +123,87 @@ class LoggerMiddlewareTest extends TestCase
         $middleware->post($response, 'abc', $options);
     }
 
+    public function testLogWithCustomMessage()
+    {
+        $options = [
+            LoggerMiddleware::class => [
+                Options::LEVEL          => LogLevel::DEBUG,
+                Options::ERROR_LEVEL    => LogLevel::ERROR,
+                Options::URL_LEVEL      => LogLevel::DEBUG,
+                Options::MESSAGE_PRE    => '[{{transaction_id}}] Sending {{request.method}} request to {{request.uri}}',
+                Options::MESSAGE_POST   => '[{{transaction_id}}] Response came back with HTTP code {{response.status_code}}',
+                Options::IGNORE_HEADERS => [
+                    'X-Ignore-Request',
+                    'X-Ignore-Response',
+                ],
+                Options::IGNORE_URI_QUERY_ITEMS => [
+                    'strip_this_item',
+                ],
+            ],
+        ];
+        $request = new Request(
+            'GET',
+            'https://example.com/?strip_this_item=0&dont_strip_this_item=1',
+            [
+                'X-Foo' => 'bar',
+                'X-Ignore-Request' => 'nope',
+            ]
+        );
+        $response = new Response(
+            200,
+            [
+                'X-Bar' => 'foo',
+                'X-Ignore-Response' => 'nope',
+            ]
+        );
+
+        $logger = $this->prophesize(LoggerInterface::class);
+        $logger->log(
+            LogLevel::DEBUG,
+            '[abc] Sending GET request to https://example.com/?dont_strip_this_item=1',
+            [
+                'transaction_id' => 'abc',
+                'request' => [
+                    'method' => 'GET',
+                    'uri' => 'https://example.com/?dont_strip_this_item=1',
+                    'protocol_version' => '1.1',
+                    'headers' => [
+                        'Host' => ['example.com'],
+                        'X-Foo' => ['bar'],
+                    ],
+                ],
+            ]
+        )->shouldBeCalled();
+        $logger->log(
+            LogLevel::DEBUG,
+            '[abc] Response came back with HTTP code 200',
+            [
+                'transaction_id' => 'abc',
+                'request' => [
+                    'method' => 'GET',
+                    'uri' => 'https://example.com/?dont_strip_this_item=1',
+                    'protocol_version' => '1.1',
+                    'headers' => [
+                        'Host' => ['example.com'],
+                        'X-Foo' => ['bar'],
+                    ],
+                ],
+                'response' => [
+                    'status_code' => 200,
+                    'status_reason' => 'OK',
+                    'protocol_version' => '1.1',
+                    'headers' => [
+                        'X-Bar' => ['foo'],
+                    ],
+                ],
+            ]
+        )->shouldBeCalled();
+
+        $middleware = new LoggerMiddleware($logger->reveal());
+        $middleware->pre($request, 'abc', $options);
+        $middleware->post($response, 'abc', $options);
+    }
+
     public function testLogError()
     {
         $options = [
@@ -220,6 +301,59 @@ class LoggerMiddlewareTest extends TestCase
         $logger->log(
             LogLevel::ERROR,
             '[abc] ' . $exception->getMessage(),
+            [
+                'transaction_id' => 'abc',
+                'request' => [
+                    'method'           => 'GET',
+                    'uri'              => 'https://example.com/',
+                    'protocol_version' => '1.1',
+                    'headers' => [
+                        'Host'  => ['example.com'],
+                        'X-Foo' => ['bar'],
+                    ],
+                ],
+                'error' => [
+                    'message' => $exception->getMessage(),
+                    'code'    => $exception->getCode(),
+                    'file'    => $exception->getFile(),
+                    'line'    => $exception->getLine(),
+                    'trace'   => $exception->getTraceAsString(),
+                ],
+            ]
+        )->shouldBeCalled();
+
+        $middleware = new LoggerMiddleware($logger->reveal());
+        $middleware->pre($request, 'abc', $options);
+        $middleware->error($exception, 'abc', $options);
+    }
+
+    public function testLogErrorNoResponseCustomMessagee()
+    {
+        $options = [
+            LoggerMiddleware::class => [
+                Options::LEVEL          => LogLevel::DEBUG,
+                Options::ERROR_LEVEL    => LogLevel::ERROR,
+                Options::MESSAGE_ERROR  => '[{{transaction_id}}] "{{error.message}}": {{error.code}}',
+                Options::IGNORE_HEADERS => [
+                    'X-Ignore-Request',
+                    'X-Ignore-Response',
+                ],
+            ],
+        ];
+        $request = new Request(
+            'GET',
+            'https://example.com/',
+            [
+                'X-Foo' => 'bar',
+                'X-Ignore-Request' => 'nope',
+            ]
+        );
+        $exception = new Exception('New Exception');
+
+        $logger = $this->prophesize(LoggerInterface::class);
+        $logger->log(
+            LogLevel::ERROR,
+            '[abc] "' . $exception->getMessage() . '": ' . $exception->getCode(),
             [
                 'transaction_id' => 'abc',
                 'request' => [

@@ -70,7 +70,10 @@ class LoggerMiddleware implements MiddlewareInterface
             return resolve($request);
         }
 
-        $message = $this->renderTemplate(self::MESSAGE_URL, $this->context[$transactionId]);
+        $message = $this->renderTemplate(
+            $options[self::class][Options::MESSAGE_PRE] ?? self::MESSAGE_URL,
+            $this->context[$transactionId]
+        );
         $this->logger->log($options[self::class][Options::URL_LEVEL], $message, $this->context[$transactionId]);
 
         return resolve($request);
@@ -98,7 +101,10 @@ class LoggerMiddleware implements MiddlewareInterface
         }
 
         $context = $this->addResponseToContext($context, $response, $options);
-        $message = $this->renderTemplate(self::MESSAGE_SUCCESSFUL, $context);
+        $message = $this->renderTemplate(
+            $options[self::class][Options::MESSAGE_POST] ?? self::MESSAGE_SUCCESSFUL,
+            $context
+        );
         $this->logger->log($options[self::class][Options::LEVEL], $message, $context);
 
         return resolve($response);
@@ -141,7 +147,10 @@ class LoggerMiddleware implements MiddlewareInterface
             $context[self::ERROR]['context'] = $throwable->getContext();
         }
 
-        $message = $this->renderTemplate(self::MESSAGE_ERROR, $context);
+        $message = $this->renderTemplate(
+            $options[self::class][Options::MESSAGE_ERROR] ?? self::MESSAGE_ERROR,
+            $context
+        );
         $this->logger->log($options[self::class][Options::ERROR_LEVEL], $message, $context);
 
         return reject($throwable);
