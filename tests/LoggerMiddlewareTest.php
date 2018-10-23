@@ -131,7 +131,7 @@ class LoggerMiddlewareTest extends TestCase
                 Options::ERROR_LEVEL    => LogLevel::ERROR,
                 Options::URL_LEVEL      => LogLevel::DEBUG,
                 Options::MESSAGE_PRE    => '[{{transaction_id}}] Sending {{request.method}} request to {{request.uri}}',
-                Options::MESSAGE_POST   => '[{{transaction_id}}] Response came back with HTTP code {{response.status_code}}',
+                Options::MESSAGE_POST   => '[{{transaction_id}}] Responded with  HTTP code {{response.status_code}}',
                 Options::IGNORE_HEADERS => [
                     'X-Ignore-Request',
                     'X-Ignore-Response',
@@ -176,7 +176,7 @@ class LoggerMiddlewareTest extends TestCase
         )->shouldBeCalled();
         $logger->log(
             LogLevel::DEBUG,
-            '[abc] Response came back with HTTP code 200',
+            '[abc] Responded with  HTTP code 200',
             [
                 'transaction_id' => 'abc',
                 'request' => [
