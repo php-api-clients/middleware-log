@@ -12,9 +12,12 @@ use Prophecy\Argument;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 
+/**
+ * @internal
+ */
 class LoggerMiddlewareTest extends TestCase
 {
-    public function testNoConfig()
+    public function testNoConfig(): void
     {
         $options = [];
         $request = new Request(
@@ -44,7 +47,7 @@ class LoggerMiddlewareTest extends TestCase
         $middleware->error($exception, 'abc', $options);
     }
 
-    public function testLog()
+    public function testLog(): void
     {
         $options = [
             LoggerMiddleware::class => [
@@ -123,7 +126,7 @@ class LoggerMiddlewareTest extends TestCase
         $middleware->post($response, 'abc', $options);
     }
 
-    public function testLogWithCustomMessage()
+    public function testLogWithCustomMessage(): void
     {
         $options = [
             LoggerMiddleware::class => [
@@ -204,7 +207,7 @@ class LoggerMiddlewareTest extends TestCase
         $middleware->post($response, 'abc', $options);
     }
 
-    public function testLogError()
+    public function testLogError(): void
     {
         $options = [
             LoggerMiddleware::class => [
@@ -275,7 +278,7 @@ class LoggerMiddlewareTest extends TestCase
         $middleware->error($exception, 'abc', $options);
     }
 
-    public function testLogErrorNoResponse()
+    public function testLogErrorNoResponse(): void
     {
         $options = [
             LoggerMiddleware::class => [
@@ -327,7 +330,7 @@ class LoggerMiddlewareTest extends TestCase
         $middleware->error($exception, 'abc', $options);
     }
 
-    public function testLogErrorNoResponseCustomMessagee()
+    public function testLogErrorNoResponseCustomMessagee(): void
     {
         $options = [
             LoggerMiddleware::class => [

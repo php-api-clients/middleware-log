@@ -130,7 +130,7 @@ class LoggerMiddleware implements MiddlewareInterface
         }
 
         $response = null;
-        if (method_exists($throwable, 'getResponse')) {
+        if (\method_exists($throwable, 'getResponse')) {
             $response = $throwable->getResponse();
         }
         if ($response instanceof ResponseInterface) {
@@ -143,7 +143,7 @@ class LoggerMiddleware implements MiddlewareInterface
         $context[self::ERROR]['line']  = $throwable->getLine();
         $context[self::ERROR]['trace'] = $throwable->getTraceAsString();
 
-        if (method_exists($throwable, 'getContext')) {
+        if (\method_exists($throwable, 'getContext')) {
             $context[self::ERROR]['context'] = $throwable->getContext();
         }
 
@@ -163,7 +163,7 @@ class LoggerMiddleware implements MiddlewareInterface
         array $ignoreHeaders
     ): array {
         foreach ($headers as $header => $value) {
-            if (in_array($header, $ignoreHeaders, true)) {
+            if (\in_array($header, $ignoreHeaders, true)) {
                 continue;
             }
 
@@ -194,22 +194,22 @@ class LoggerMiddleware implements MiddlewareInterface
 
     private function stripQueryItems(UriInterface $uri, array $options): UriInterface
     {
-        parse_str($uri->getQuery(), $query);
+        \parse_str($uri->getQuery(), $query);
         foreach ($options[self::class][Options::IGNORE_URI_QUERY_ITEMS] ?? [] as $item) {
             unset($query[$item], $query[$item . '[]']);
         }
 
-        return $uri->withQuery(http_build_query($query));
+        return $uri->withQuery(\http_build_query($query));
     }
 
     private function renderTemplate(string $template, array $context): string
     {
         $keyValues = [];
-        preg_match_all("|\{\{(.*)\}\}|U", $template, $out, PREG_PATTERN_ORDER);
-        foreach (array_unique(array_values($out[1])) as $placeHolder) {
+        \preg_match_all("|\{\{(.*)\}\}|U", $template, $out, PREG_PATTERN_ORDER);
+        foreach (\array_unique(\array_values($out[1])) as $placeHolder) {
             $keyValues['{{' . $placeHolder . '}}'] = getIn($context, $placeHolder, '');
         }
-        $template = str_replace(array_keys($keyValues), array_values($keyValues), $template);
+        $template = \str_replace(\array_keys($keyValues), \array_values($keyValues), $template);
 
         return $template;
     }
