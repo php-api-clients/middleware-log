@@ -205,7 +205,7 @@ class LoggerMiddleware implements MiddlewareInterface
     private function renderTemplate(string $template, array $context): string
     {
         $keyValues = [];
-        \preg_match_all("|\{\{(.*)\}\}|U", $template, $out, PREG_PATTERN_ORDER);
+        \preg_match_all("|\{\{(.*)\}\}|U", $template, $out, \PREG_PATTERN_ORDER);
         foreach (\array_unique(\array_values($out[1])) as $placeHolder) {
             $keyValues['{{' . $placeHolder . '}}'] = getIn($context, $placeHolder, '');
         }
