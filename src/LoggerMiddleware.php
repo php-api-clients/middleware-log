@@ -9,9 +9,9 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerInterface;
 use React\Promise\CancellablePromiseInterface;
-use Throwable;
 use function React\Promise\reject;
 use function React\Promise\resolve;
+use Throwable;
 use function WyriHaximus\getIn;
 
 class LoggerMiddleware implements MiddlewareInterface
